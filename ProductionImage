@@ -1,0 +1,4 @@
+FROM openjdk:8-jdk
+RUN mkdir bin
+COPY ./build/* ./bin
+python hello.py

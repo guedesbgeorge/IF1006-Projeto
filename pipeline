@@ -1,0 +1,36 @@
+bengea 966123f71b2bd6dce2d242f96b4ab5d0ceedfc7d 
+
+ler as credenciais do docker hub
+- key pro github
+- key pro docker hub
+- key pra google cloud
+- env vars
+
+- ler as imagens dependentes que precisam rodar na maquina 
+- ler os comandos para executar o projeto
+    - gerar uma imagem com esse comando no ultimo
+- ler os comandos para rodarem os testes
+    - gerar uma imagem com este comando no ultimo
+
+------ antes -------------
+
+[build env]
+- builda as imagens docker
+
+[test env]
+- rodar os testes unitários 
+
+[ua env]
+- ler que pasta está o código, a linguagem+versão e as métricas de user acceptance (e.g: test coverage)
+- rodar os testes de aceitação 
+
+[product env]
+- deploy na google cloud
+
+
+
+
+
+
+
+
