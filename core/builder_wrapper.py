@@ -43,7 +43,7 @@ class BuilderWrapper:
     project = ""
     secret_keys = ""
     ua_config = ""
-
+    tag = ""
 
     build_steps = []
     output_dir = ""
@@ -80,6 +80,9 @@ class BuilderWrapper:
         self.ua_config.min_coverage = config["user_acceptance"]["min_coverage"]
 
         self.run_steps = config["production"]["run_steps"]
+
+        #self.tag = config["tag"]
+
 
     def is_outdate(self):
         curr_commit = self.repo.commit

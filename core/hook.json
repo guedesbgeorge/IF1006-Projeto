@@ -1,0 +1,8 @@
+{
+    "name": "web",
+    "config": {
+            "url": "http://example.com/webhook",
+            "content_type": "json"
+    }
+
+}

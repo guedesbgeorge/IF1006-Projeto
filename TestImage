@@ -1,0 +1,4 @@
+FROM openjdk:8-jdk
+RUN mkdir source
+COPY ./* source/
+CMD python hello.py

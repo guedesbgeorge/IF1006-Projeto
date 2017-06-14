@@ -1,0 +1,5 @@
+FROM openjdk:8-jdk
+
+RUN mkdir build
+COPY build/* build  
+CMD bash
