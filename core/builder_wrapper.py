@@ -1,22 +1,42 @@
 from github import Github
 import yaml
 import base64
+import os
 
+from random import randint
 
 class Project:
     gwrap = ""
     repo = ""
-    branch = ""
     last_commit = ""
+    hook = ""
+    hook_id = ""
 
     def __init__(self):
         pass
 
-    def load(self, git_api_key, repository_name):
+    def load(self, git_api_key, repository_name, hook_id):
         self.gwrap = Github(git_api_key)
         self.repo = self.gwrap.get_repo(repository_name)
-        self.branch = self.repo.get_branch(self.repo.default_branch)
-        self.last_commit = self.branch.commit
+        self.hook = None
+        self.hook_id = hook_id
+
+        if self.hook_id == None:
+            self.get_repo_hook()
+        else:
+            print("Hook already created with id="+str(hook_id))
+
+    def get_branch(self):
+        return self.repo.get_branch(self.repo.default_branch)
+
+    def get_repo_hook(self):
+        print("Creating hook")
+        if (self.hook_id == None):
+            self.hook = self.repo.create_hook(name="web", config={"url": os.environ['WEB_HOOK_ROUTE'], "content_type": "json"})
+            # self.hook = self.repo.create_hook(name="web", config={"url": "127.0.0." + str(randint(3,255)), "content_type": "json"})
+            self.hook_id = self.hook.id
+            print("Hook well created with id="+str(self.hook_id))
+        return self.hook
 
 class SecretKeys:
     git_api_key = ""
@@ -54,19 +74,19 @@ class BuilderWrapper:
 
     run_steps = []
 
-    def __init__(self, git_api_key, docker_hub_key, google_cloud_key, repository_name):
+    def __init__(self, git_api_key, docker_hub_key, google_cloud_key, repository_name, hook_id):
         self.secret_keys = SecretKeys(git_api_key, docker_hub_key, google_cloud_key)
         self.project = Project()
         self.ua_config = UaConfig()
-        self.project.load(git_api_key, repository_name)
+        self.project.load(git_api_key, repository_name, hook_id)
         self.load_benga_conf()
 
     def load_benga_conf(self):
-        # content = base64.b64decode(self.project.repo.get_file_contents('benga.yml').content)
-        content = ""
+        content = base64.b64decode(self.project.repo.get_file_contents('benga.yml').content)
+        # content = ""
 
-        with open('/home/mras/cloud/benga.yml') as myfile:
-            content = myfile.read()
+        # with open('/home/mras/cloud/benga.yml') as myfile:
+        #    content = myfile.read()
 
         config = yaml.load(content)
 
@@ -84,9 +104,8 @@ class BuilderWrapper:
         #self.tag = config["tag"]
 
 
-    def is_outdate(self):
-        curr_commit = self.repo.commit
-        return curr_commit != last_commit
+    def is_outdate(self, commit):
+        return (self.project.get_branch().commit == commit) is False
 
     def print_config(self):
         print ("build_steps: " + str(self.build_steps))
@@ -98,10 +117,10 @@ class BuilderWrapper:
         print ("run_steps: " + str(self.run_steps))
 
     def get_output_dir(self):
-        return self.path + "/" + self.output_dir
+        return "./" + self.output_dir
 
 # g = Github("966123f71b2bd6dce2d242f96b4ab5d0ceedfc7d")
-# b = BuilderWrapper(git_api_key="966123f71b2bd6dce2d242f96b4ab5d0ceedfc7d", repository_name="marlonwc3/cloud-example", docker_hub_key="", google_cloud_key="")
+# b = BuilderWrapper(git_api_key="3fea2d8fd7690176b4ff9d69a61e49435f164cdf", repository_name="marlonwc3/cloud-example", docker_hub_key="", google_cloud_key="")
 # b.path = "."
 
 
