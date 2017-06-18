@@ -7,6 +7,13 @@ from docker_api import DockerImage
 
 from random import randint
 
+class GCloudConfig:
+    def __init__(self, project, instance, zone, key_file=None):
+        self.key_file = key_file
+        self.project = project
+        self.instance = instance
+        self.zone = zone
+
 class Project:
     gwrap = ""
     repo = ""
@@ -24,6 +31,7 @@ class Project:
         self.repo = self.gwrap.get_repo(repository_name)
         self.hook = None
         self.hook_id = hook_id
+        self.gcloud_config = None
 
         if self.hook_id == None:
             self.get_repo_hook()
@@ -44,16 +52,14 @@ class Project:
 
 class SecretKeys:
     git_api_key = ""
-    google_cloud_key = ""
 
     docker_hub_u = ""
     docker_hub_p = ""
 
-    def __init__(self, git_api_key, docker_hub_u, docker_hub_p, google_cloud_key):
+    def __init__(self, git_api_key, docker_hub_u, docker_hub_p):
         self.git_api_key = git_api_key
         self.docker_hub_u = docker_hub_u
         self.docker_hub_p = docker_hub_p
-        self.google_cloud_key = google_cloud_key
 
 class UaConfig:
     project_language = ""
@@ -73,8 +79,8 @@ class BuilderWrapper:
     pro_image = None
     test_image = None
 
-    def __init__(self, git_api_key, docker_hub_u, docker_hub_p, google_cloud_key, repository_name, hook_id):
-        self.secrets = SecretKeys(git_api_key, docker_hub_u, docker_hub_p, google_cloud_key)
+    def __init__(self, git_api_key, docker_hub_u, docker_hub_p,repository_name, hook_id):
+        self.secrets = SecretKeys(git_api_key, docker_hub_u, docker_hub_p)
         self.project = Project()
         self.project.load(git_api_key, repository_name, hook_id)
         self.ua_config = UaConfig()

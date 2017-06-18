@@ -2,17 +2,24 @@ from builder_wrapper import BuilderWrapper
 from docker_api import DockerAPI
 from docker_api import DockerImage
 from docker_api import StepResult
-
+from google_cloud import GCloudAPI
 
 
 LOAD_BENGA_CONF = (lambda bw: ActionBuilder.load_benga_conf(bw), 'LOAD_BENGA_CONF')
+
 CLONE_REPO = (lambda bw: ActionBuilder.clone_repo(bw), 'CLONE_REPO')
 BUILD_TEST_IMAGE = (lambda bw: ActionBuilder.build_test_image(bw), 'BUILD_TEST_IMAGE')
 RUN_TESTS = (lambda bw: ActionBuilder.run_tests(bw), 'RUN_TESTS')
 PUSH_TEST_IMAGE = (lambda bw: ActionBuilder.push_test_image(bw), 'PUSH_TEST_IMAGE')
 
 
-pipeline = [LOAD_BENGA_CONF, CLONE_REPO, BUILD_TEST_IMAGE, RUN_TESTS, PUSH_TEST_IMAGE]
+BUILD_PROD_IMAGE = (lambda bw: ActionBuilder.build_prod_image(bw), 'BUILD_PROD_IMAGE')
+PUSH_PROD_IMAGE = (lambda bw: ActionBuilder.push_prod_image(bw), 'PUSH_PROD_IMAGE')
+
+DEPLOY_PROD_CONTAINER = (lambda bw: ActionBuilder.deploy_prod_container(bw), 'DEPLOY_PROD_CONTAINER')
+
+
+pipeline = [LOAD_BENGA_CONF, CLONE_REPO, BUILD_TEST_IMAGE, RUN_TESTS, PUSH_TEST_IMAGE, BUILD_PROD_IMAGE, PUSH_PROD_IMAGE, DEPLOY_PROD_CONTAINER]
 
 class ActionBuilder:
 
@@ -23,6 +30,7 @@ class ActionBuilder:
             last_result = None
 
             for step in pipeline:
+                print ("Starting step: " + step[1])
                 result = ActionBuilder.run_step(bw=bw, step=step[0], namespace=step[1],last_result=last_result)
                 results.append(result)
                 last_result = result
@@ -75,9 +83,47 @@ class ActionBuilder:
 
         return DockerAPI.run(image=tag)
 
+    @staticmethod
     def push_test_image(bw):
         DockerAPI.push(bw.test_image, dhub_u=bw.secrets.docker_hub_u, dhub_p=bw.secrets.docker_hub_p)
         return StepResult()
 
+    @staticmethod
+    def build_prod_image(bw):
+        dockerfile = bw.prod_image.dockerfile
+        context = ActionBuilder.get_context_path(bw)
+        tag = bw.prod_image.tag
+
+        return DockerAPI.build(dockerfile=dockerfile, tag=tag, context_path=context)
+
+    @staticmethod
+    def push_prod_image(bw):
+        DockerAPI.push(bw.prod_image, dhub_u=bw.secrets.docker_hub_u, dhub_p=bw.secrets.docker_hub_p)
+        return StepResult()
+
+    @staticmethod
+    def deploy_prod_container(bw):
+
+        try:
+            print ("Push image to deploy")
+            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker",  "login", "--password=", bw.secrets.docker_hub_p, "--username=", bw.secrets.docker_hub_u])
+#            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker",  "stop", "$(sudo docker ps -a -q)"])
+#            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker", "rm", "$(sudo docker ps -a -q)"])
+
+            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker", "pull", bw.project.repository_name])
+
+            exec_command = ["sudo", "docker", "run"]
+            if (bw.prod_image.run_args is not None):
+                exec_command += bw.prod_image.run_args.split(" ")
+
+            exec_commands.append(bw.project.repository_name)
+
+            GCloudAPI.run_command(bw.gcloud_config, exec_commands)
+            return StepResult()
+        except Exception as e:
+            return StepResult(error=str(e))
+
+
     def get_context_path(bw):
         return bw.project.repository_name+"/."
+

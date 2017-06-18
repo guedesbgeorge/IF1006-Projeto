@@ -6,14 +6,18 @@ class DockerImage:
     dependencies = None
     dockerfile = None
 
-    def __init__(self, tag, dependencies, dockerfile):
+    def __init__(self, tag, dependencies, dockerfile, run_args=None):
         self.tag = tag
         self.dependencies = dependencies
         self.dockerfile = dockerfile
+        self.run_args = run_args
 
     @staticmethod
     def from_config(config):
-        return DockerImage(tag=config["tag"], dependencies=config["dependencies"], dockerfile=config["dockerfile"])
+        if (config.__contains__("run_args")):
+             return DockerImage(tag=config["tag"], dependencies=config["dependencies"], dockerfile=config["dockerfile"], run_args=config["run_args"])
+        else:
+            return DockerImage(tag=config["tag"], dependencies=config["dependencies"], dockerfile=config["dockerfile"])
 
     def print_config(self):
         print("tag: " + str(self.tag))
