@@ -26,19 +26,18 @@ class ImageAssembler:
     def write_cmd(steps, f):
         f.write("CMD " + " && ".join(steps)+"\n")
 
+# b = BuilderWrapper(git_api_key="7cf85aa94aa248b28431f2a87ffac19ffef9db4d", repository_name="marlonwc3/cloud-example",      docker_hub_key="", google_cloud_key="")
+# b.path = "."
+# b.print_config()
+# print(b.get_output_dir())
 
-b = BuilderWrapper(git_api_key="7cf85aa94aa248b28431f2a87ffac19ffef9db4d", repository_name="marlonwc3/cloud-example",      docker_hub_key="", google_cloud_key="")
-b.path = "."
-b.print_config()
-print(b.get_output_dir())
+# image = "."
 
-image = "."
-
-with open('Dockerfile', 'r') as myfile:
-        image=myfile.read()
+# with open('Dockerfile', 'r') as myfile:
+#        image=myfile.read()
 
 
-ImageAssembler.assemble_production_image(b, image, '..')
+# ImageAssembler.assemble_production_image(b, image, '..')
 
-ImageAssembler.assemble_test_image(b, image, '..')
+# ImageAssembler.assemble_test_image(b, image, '..')
 

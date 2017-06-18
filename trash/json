@@ -1,7 +1,8 @@
 {
-    "git_api_key": "3fea2d8fd7690176b4ff9d69a61e49435f164cdf",
+    "git_api_key": "_",
     "repository_name": "marlonwc3/cloud-example",
-    "docker_hub_key": "my-docker-huber-key",
+    "docker_hub_u": "_",
+    "docker_hub_p": "_",
     "google_cloud_key": "my-google-cloud-key",
     "hook_id": "14431140"
 }

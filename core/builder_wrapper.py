@@ -2,6 +2,8 @@ from github import Github
 import yaml
 import base64
 import os
+from subprocess import call
+from docker_api import DockerImage
 
 from random import randint
 
@@ -11,12 +13,14 @@ class Project:
     last_commit = ""
     hook = ""
     hook_id = ""
+    repository_name = ""
 
     def __init__(self):
         pass
 
     def load(self, git_api_key, repository_name, hook_id):
         self.gwrap = Github(git_api_key)
+        self.repository_name = repository_name
         self.repo = self.gwrap.get_repo(repository_name)
         self.hook = None
         self.hook_id = hook_id
@@ -40,14 +44,16 @@ class Project:
 
 class SecretKeys:
     git_api_key = ""
-    docker_hub_key = ""
     google_cloud_key = ""
 
-    def __init__(self, git_api_key, docker_hub_key, google_cloud_key):
-        self.git_api_key = git_api_key
-        self.docker_hub_key = docker_hub_key
-        self.google_cloud_key = google_cloud_key
+    docker_hub_u = ""
+    docker_hub_p = ""
 
+    def __init__(self, git_api_key, docker_hub_u, docker_hub_p, google_cloud_key):
+        self.git_api_key = git_api_key
+        self.docker_hub_u = docker_hub_u
+        self.docker_hub_p = docker_hub_p
+        self.google_cloud_key = google_cloud_key
 
 class UaConfig:
     project_language = ""
@@ -61,25 +67,19 @@ class BuilderWrapper:
     path = ""
 
     project = ""
-    secret_keys = ""
+    secrets = ""
     ua_config = ""
-    tag = ""
 
-    build_steps = []
-    output_dir = ""
+    pro_image = None
+    test_image = None
 
-
-    test_dependent_images = []
-    test_steps = []
-
-    run_steps = []
-
-    def __init__(self, git_api_key, docker_hub_key, google_cloud_key, repository_name, hook_id):
-        self.secret_keys = SecretKeys(git_api_key, docker_hub_key, google_cloud_key)
+    def __init__(self, git_api_key, docker_hub_u, docker_hub_p, google_cloud_key, repository_name, hook_id):
+        self.secrets = SecretKeys(git_api_key, docker_hub_u, docker_hub_p, google_cloud_key)
         self.project = Project()
-        self.ua_config = UaConfig()
         self.project.load(git_api_key, repository_name, hook_id)
-        self.load_benga_conf()
+        self.ua_config = UaConfig()
+        self.prod_image = None
+        self.test_image = None
 
     def load_benga_conf(self):
         content = base64.b64decode(self.project.repo.get_file_contents('benga.yml').content)
@@ -90,36 +90,49 @@ class BuilderWrapper:
 
         config = yaml.load(content)
 
-        self.build_steps = config["build"]["steps"]
-        self.output_dir = config["build"]["output_dir"]
-
-        self.test_steps = config["test"]["run_steps"]
-        self.test_dependent_images = config["test"]["dependent_images"]
-
         self.ua_config.project_language = config["user_acceptance"]["project_language"]
         self.ua_config.min_coverage = config["user_acceptance"]["min_coverage"]
 
-        self.run_steps = config["production"]["run_steps"]
 
-        #self.tag = config["tag"]
-
+        self.prod_image = DockerImage.from_config(config["production"])
+        self.test_image = DockerImage.from_config(config["test"])
 
     def is_outdate(self, commit):
         return (self.project.get_branch().commit == commit) is False
 
+    def clone_repo(self):
+        clone_url = self.get_clone_url()
+
+        name = self.project.repo.name
+        name_len = name.__len__()
+        name_prefix_ws = self.project.repository_name[:-name_len]
+
+        call(["rm", "-rf", name_prefix_ws])
+        call(["git", "clone", str(clone_url)])
+        call(["mkdir", "-p", name_prefix_ws])
+        call(["mv",  name, name_prefix_ws])
+
+    def erase_repo(self):
+        call(["rm", "-rf", self.project.repository_name])
+
+    def get_clone_url(self):
+        url = self.project.repo.clone_url
+        if (url.startswith("https://")):
+                return url[:8] + self.secrets.git_api_key + "@" + url[8:]
+        elif (urls.startswith("http://")):
+                return url[:7] + self.secrets.git_api_key + "@" + url[7:]
+        else:
+            raise Exception('unknown clone url: ' + url)
+
+
+
     def print_config(self):
-        print ("build_steps: " + str(self.build_steps))
-        print ("output_dirs: " + str(self.output_dir))
-        print ("test_steps: " + str(self.test_steps))
-        print ("test_dependent_images: " + str(self.test_dependent_images))
-        print ("ua_config.prroject_language:: " + str(self.ua_config.project_language))
+        print ("ua_config.prroject_language: " + str(self.ua_config.project_language))
         print ("ua_config.min_coverage: " + str(self.ua_config.min_coverage))
-        print ("run_steps: " + str(self.run_steps))
-
-    def get_output_dir(self):
-        return "./" + self.output_dir
-
-# g = Github("966123f71b2bd6dce2d242f96b4ab5d0ceedfc7d")
+        if self.prod_image is not None and self.test_image is not None:
+            self.prod_image.print_config()
+            self.test_image.print_config()
+      # g = Github("966123f71b2bd6dce2d242f96b4ab5d0ceedfc7d")
 # b = BuilderWrapper(git_api_key="3fea2d8fd7690176b4ff9d69a61e49435f164cdf", repository_name="marlonwc3/cloud-example", docker_hub_key="", google_cloud_key="")
 # b.path = "."
 
