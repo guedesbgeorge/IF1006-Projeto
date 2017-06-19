@@ -1,6 +1,5 @@
 from subprocess import call
-
-
+import datetime
 MARKUP_BEGIN = "<!DOCTYPE html><html><head><style>table{font-family: arial, sans-serif; border-collapse: collapse; width: 100%;}tr{background-color: gray;}td, th{border: 1px solid #dddddd;text-align: left;padding: 8px;}.success{background-color: green;}.failed{background-color: red;}</style></head><body>"
 
 MARKUP_END = "</body></html>"
@@ -25,6 +24,7 @@ class OutputGenerator:
 
     @staticmethod
     def init_project_output_folder(bw):
+        call(["rm", "-rf", OUTPUT_FOLDER+"/"+bw.project.repository_name])
         call(["mkdir", "-p", OUTPUT_FOLDER+"/"+bw.project.repository_name])
 
     def init_outputs_folder():
@@ -55,7 +55,8 @@ class OutputGenerator:
 
     @staticmethod
     def generate_project_header(bw):
-        return "<h3>" + bw.project.repository_name + "</h3>"
+        now = datetime.datetime.now()
+        return "<h3>" + bw.project.repository_name + "</h3><h5>" + str(now) + "</h5>"
 
     @staticmethod
     def generate_project_details(bw):

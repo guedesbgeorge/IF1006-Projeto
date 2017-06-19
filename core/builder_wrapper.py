@@ -45,6 +45,7 @@ class Project:
     def get_repo_hook(self):
         print("Creating hook")
         if (self.hook_id == None):
+            print("Creating hoook at url: " + os.environ['WEB_HOOK_ROUTE'])
             self.hook = self.repo.create_hook(name="web", config={"url": os.environ['WEB_HOOK_ROUTE'], "content_type": "json"})
             # self.hook = self.repo.create_hook(name="web", config={"url": "127.0.0." + str(randint(3,255)), "content_type": "json"})
             self.hook_id = self.hook.id

@@ -80,6 +80,10 @@ class DockerAPI:
         DockerAPI.client = docker.from_env()
 
     @staticmethod
+    def login(username, password):
+        DockerAPI.client.login(username=username, password=password)
+
+    @staticmethod
     def build(context_path,dockerfile, tag):
         try:
             print("Building image")

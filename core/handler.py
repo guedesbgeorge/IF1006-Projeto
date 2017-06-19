@@ -1,7 +1,4 @@
-from flask import Flask
-from flask import request
-from flask import json
-from flask import jsonify
+from flask import Flask, request, json, jsonify, send_from_directory
 from random import randint
 from subprocess import call
 from action_builder import ActionBuilder
@@ -20,23 +17,35 @@ DockerAPI.init()
 
 
 # route_suffix = str(randint(0,1000000))
-route_suffix = "832555"
-rout = 'http://c1551687.ngrok.io'
-os.environ['WEB_HOOK_ROUTE'] = rout+"/webhook"+route_suffix
+route_suffix = "934644"
+os.environ['WEB_HOOK_ROUTE'] =  os.environ['WEB_HOOK_HOST']+"/webhook"+route_suffix
+print("Hook Route: " + os.environ['WEB_HOOK_ROUTE'])
+
 
 GCLOUD_PATH = "google_cloud_keys"
 call(["mkdir", "-p", GCLOUD_PATH])
 
 OutputGenerator.init_outputs_folder()
 
+
+
 @app.route('/webhook'+route_suffix, methods=['POST'])
 def webhook():
+
+    print("Hook Route: " + os.environ['WEB_HOOK_ROUTE'])
+
     input_json = request.get_json()
 #    print("json --> " + str(json))
     print("Incoming hook detected!")
-    print("X-GitHub-Event: " + str(request.headers['X-GitHub-Event']))
+    event = str(request.headers['X-GitHub-Event'])
+    print("X-GitHub-Event: " + event)
     print("X-GitHub-Delivery: " + str(request.headers['X-GitHub-Delivery']))
 #    print("Json: " + str(json.dumps(input_json)))
+
+
+
+    if event == "ping":
+        return "ping detected"
 
     repository_name = input_json['repository']['full_name']
     curr_commit = input_json['after']
@@ -50,9 +59,10 @@ def webhook():
     if is_master:
         print ("Commit on master detected!")
         try:
+            DockerAPI.login(username=bw.secrets.docker_hub_u, password=bw.secrets.docker_hub_p)
+
             OutputGenerator.generate_loading_markup(bw)
             pipeline_results = ActionBuilder.start_pipeline(bw)
-            OutputGenerator.create_result_markup(bw, pipeline_results)
             print ("Pipeline results | Number of runned steps:" + str(pipeline_results.__len__()))
             for result in pipeline_results:
                 if result.has_failed():
@@ -79,6 +89,7 @@ def setcloudfile():
     gcloud_key_file = create_file_for_google_cloud_key(json, repository_name=repository_name)
 
     bw.gcloud_config.key_file = gcloud_key_file
+    print("GCloud key file now is: " + bw.gcloud_config.key_file)
 
     print("Activating google cloud service")
     GCloudAPI.activate_service(bw.gcloud_config)
@@ -107,6 +118,11 @@ def register():
         print ("Creating builder")
         bw = BuilderWrapper(git_api_key=git_api_key, docker_hub_u=docker_hub_u, docker_hub_p=docker_hub_p,  repository_name=repository_name, hook_id=hook_id)
 
+#        print("HOOKs: " + str(bw.project.repo.get_hooks().get_page(0)))
+#        bw.project.repo.get_hook(14430897).delete()
+#        bw.project.repo.get_hook(14452288).delete()
+#        bw.project.repo.get_hook(14452038).delete()
+#        bw.project.repo.get_hook(14429077).delete()
         print ("Builder created!")
 
 
@@ -128,7 +144,11 @@ def register():
 def hello_world():
     return 'watched by mr4s'
 
-
+@app.route('/outputs', defaults={'path': ''}, methods=['GET'])
+@app.route('/outputs/<path:path>', methods=['GET'])
+def get_output(path):
+    print("Path:" + path)
+    return send_from_directory('outputs', path)
 
 def create_file_for_google_cloud_key(key_json, repository_name):
 #    key_json = bytes(key_json, "utf-8").decode("unicode_escape")

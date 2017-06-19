@@ -3,7 +3,7 @@ from docker_api import DockerAPI
 from docker_api import DockerImage
 from docker_api import StepResult
 from google_cloud import GCloudAPI
-
+from results_output_generator import OutputGenerator
 
 LOAD_BENGA_CONF = (lambda bw: ActionBuilder.load_benga_conf(bw), 'LOAD_BENGA_CONF')
 
@@ -35,6 +35,8 @@ class ActionBuilder:
                 print ("Finishing step: " + step[1])
                 results.append(result)
                 last_result = result
+
+                OutputGenerator.create_result_markup(bw, results)
                 if result.has_failed():
                     print(str(result.get_error_msg()))
                     break
