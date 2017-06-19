@@ -77,7 +77,7 @@ class BuilderWrapper:
     secrets = ""
     ua_config = ""
 
-    pro_image = None
+    prod_image = None
     test_image = None
 
     def __init__(self, git_api_key, docker_hub_u, docker_hub_p,repository_name, hook_id):
@@ -87,6 +87,7 @@ class BuilderWrapper:
         self.ua_config = UaConfig()
         self.prod_image = None
         self.test_image = None
+        self.count = 1
 
     def load_benga_conf(self):
         print("ALOOOOOOOOOOOOOOOOOOOOOOOOOOOOO -> " + str(self.project.repo))
@@ -141,6 +142,8 @@ class BuilderWrapper:
         else:
             raise Exception('unknown clone url: ' + url)
 
+    def get_current_commit(self):
+        return str(self.project.get_branch().commit.sha)
 
 
     def print_config(self):

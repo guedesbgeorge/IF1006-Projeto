@@ -9,8 +9,9 @@ from docker_api import DockerAPI
 from builder_wrapper import BuilderWrapper
 from builder_wrapper import GCloudConfig
 from google_cloud import GCloudAPI
-import json
 
+import json
+from results_output_generator import OutputGenerator
 import os
 
 app = Flask(__name__)
@@ -26,6 +27,7 @@ os.environ['WEB_HOOK_ROUTE'] = rout+"/webhook"+route_suffix
 GCLOUD_PATH = "google_cloud_keys"
 call(["mkdir", "-p", GCLOUD_PATH])
 
+OutputGenerator.init_outputs_folder()
 
 @app.route('/webhook'+route_suffix, methods=['POST'])
 def webhook():
@@ -48,8 +50,9 @@ def webhook():
     if is_master:
         print ("Commit on master detected!")
         try:
+            OutputGenerator.generate_loading_markup(bw)
             pipeline_results = ActionBuilder.start_pipeline(bw)
-
+            OutputGenerator.create_result_markup(bw, pipeline_results)
             print ("Pipeline results | Number of runned steps:" + str(pipeline_results.__len__()))
             for result in pipeline_results:
                 if result.has_failed():
@@ -59,6 +62,7 @@ def webhook():
                 else:
                     print ("[Successed] Namespace: " + str(result.namespace))
                     print ("Message:\n" + result.get_message())
+            bw.count += 1
         finally:
             bw.erase_repo()
 
@@ -107,6 +111,9 @@ def register():
 
 
         bw.gcloud_config = GCloudConfig(instance=gcloud_instance, project=gcloud_project, zone=gcloud_zone, user=gcloud_user)
+
+        OutputGenerator.init_project_output_folder(bw)
+
 
         bw.print_config()
         bws[repository_name] = bw

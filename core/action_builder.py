@@ -33,14 +33,11 @@ class ActionBuilder:
                 print ("Starting step: " + step[1])
                 result = ActionBuilder.run_step(bw=bw, step=step[0], namespace=step[1],last_result=last_result)
                 print ("Finishing step: " + step[1])
-                if result is None:
-                    break
+                results.append(result)
+                last_result = result
                 if result.has_failed():
                     print(str(result.get_error_msg()))
                     break
-                results.append(result)
-                last_result = result
-
 
             return list(filter(lambda result: result is not None, results))
 
@@ -53,9 +50,6 @@ class ActionBuilder:
 
     @staticmethod
     def run_step(bw, step, namespace, last_result=None):
-        if (last_result is not None and last_result.has_failed()):
-            return None
-
         result = step(bw)
         result.namespace = namespace
         return result
