@@ -91,6 +91,7 @@ def register():
     gcloud_project = json['gcloud_config']['project']
     gcloud_instance = json['gcloud_config']['instance']
     gcloud_zone = json['gcloud_config']['zone']
+    gcloud_user = json['gcloud_config']['user']
 
     repository_name = json['repository_name']
     print ("oi!")
@@ -105,7 +106,7 @@ def register():
         print ("Builder created!")
 
 
-        bw.gcloud_config = GCloudConfig(instance=gcloud_instance, project=gcloud_project, zone=gcloud_zone)
+        bw.gcloud_config = GCloudConfig(instance=gcloud_instance, project=gcloud_project, zone=gcloud_zone, user=gcloud_user)
 
         bw.print_config()
         bws[repository_name] = bw
@@ -133,5 +134,8 @@ def create_file_for_google_cloud_key(key_json, repository_name):
     with open(file_path, "w") as f:
         json.dump(key_json, f)
 #        f.write(key_json)
+
+    call(["chmod", "400", file_path])
+
     return file_path
 

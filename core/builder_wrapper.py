@@ -8,11 +8,12 @@ from docker_api import DockerImage
 from random import randint
 
 class GCloudConfig:
-    def __init__(self, project, instance, zone, key_file=None):
+    def __init__(self, project, instance, zone, user, key_file=None):
         self.key_file = key_file
         self.project = project
         self.instance = instance
         self.zone = zone
+        self.user = user
 
 class Project:
     gwrap = ""
@@ -88,20 +89,30 @@ class BuilderWrapper:
         self.test_image = None
 
     def load_benga_conf(self):
+        print("ALOOOOOOOOOOOOOOOOOOOOOOOOOOOOO -> " + str(self.project.repo))
         content = base64.b64decode(self.project.repo.get_file_contents('benga.yml').content)
+        print("PROJECT: " + str(self.project.repo))
         # content = ""
 
         # with open('/home/mras/cloud/benga.yml') as myfile:
         #    content = myfile.read()
 
         config = yaml.load(content)
+        print("ALOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 2")
 
         self.ua_config.project_language = config["user_acceptance"]["project_language"]
         self.ua_config.min_coverage = config["user_acceptance"]["min_coverage"]
 
 
         self.prod_image = DockerImage.from_config(config["production"])
+        print("CARREGOU PROD:")
+        self.prod_image.print_config
+
+
         self.test_image = DockerImage.from_config(config["test"])
+        print("CARREGOU TEST:")
+        self.test_image.print_config
+
 
     def is_outdate(self, commit):
         return (self.project.get_branch().commit == commit) is False

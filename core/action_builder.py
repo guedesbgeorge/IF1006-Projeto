@@ -32,8 +32,15 @@ class ActionBuilder:
             for step in pipeline:
                 print ("Starting step: " + step[1])
                 result = ActionBuilder.run_step(bw=bw, step=step[0], namespace=step[1],last_result=last_result)
+                print ("Finishing step: " + step[1])
+                if result is None:
+                    break
+                if result.has_failed():
+                    print(str(result.get_error_msg()))
+                    break
                 results.append(result)
                 last_result = result
+
 
             return list(filter(lambda result: result is not None, results))
 
@@ -65,8 +72,11 @@ class ActionBuilder:
     def clone_repo(bw):
         try:
             bw.clone_repo()
+            bw.test_image.print_config()
+
             return StepResult()
         except Exception as e:
+            print ("FUDEU CLONAR: " + str(e) )
             return StepResult(error=str(e))
 
     @staticmethod
@@ -106,17 +116,17 @@ class ActionBuilder:
 
         try:
             print ("Push image to deploy")
-            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker",  "login", "--password=", bw.secrets.docker_hub_p, "--username=", bw.secrets.docker_hub_u])
+            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker",  "login", "--password", bw.secrets.docker_hub_p, "--username", bw.secrets.docker_hub_u])
 #            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker",  "stop", "$(sudo docker ps -a -q)"])
 #            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker", "rm", "$(sudo docker ps -a -q)"])
 
-            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker", "pull", bw.project.repository_name])
+            GCloudAPI.run_command(bw.gcloud_config, ["sudo", "docker", "pull", bw.prod_image.tag])
 
-            exec_command = ["sudo", "docker", "run"]
+            exec_commands = ["sudo", "docker", "run"]
             if (bw.prod_image.run_args is not None):
-                exec_command += bw.prod_image.run_args.split(" ")
+                exec_commands += bw.prod_image.run_args.split(" ")
 
-            exec_commands.append(bw.project.repository_name)
+            exec_commands.append(bw.prod_image.tag)
 
             GCloudAPI.run_command(bw.gcloud_config, exec_commands)
             return StepResult()

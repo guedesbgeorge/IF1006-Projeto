@@ -20,10 +20,11 @@ class DockerImage:
             return DockerImage(tag=config["tag"], dependencies=config["dependencies"], dockerfile=config["dockerfile"])
 
     def print_config(self):
+        print("### Printing image ###")
         print("tag: " + str(self.tag))
         print("dependencies: " + str(self.dependencies))
         print("dockerfile: " + str(self.dockerfile))
-
+        print("run_args: " + str(self.run_args))
 
 class StepResult:
     error = None
