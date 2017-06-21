@@ -53,7 +53,7 @@ WORKDIR /build
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
 ENV FLASK_APP /build/handler.py
-ENV WEB_HOOK_HOST 23.251.151.44:5000
+ENV WEB_HOOK_HOST http://23.251.151.44:5000
     
 RUN usermod -aG docker $(whoami)
 
