@@ -3,7 +3,6 @@
     "repository_name": "marlonwc3/cloud-example",
     "docker_hub_u": "marlonalves",
     "docker_hub_p": "04I7wh%edkNHGV#fT6Ji",
-    "hook_id": "14452680",
     "gcloud_config": {
                 "instance": "instance-1",
                 "zone": "us-central1-c",
