@@ -12,12 +12,14 @@ from results_output_generator import OutputGenerator
 import os
 
 app = Flask(__name__)
+app.run(threaded=True)
 bws = {}
 DockerAPI.init()
 
 
 # route_suffix = str(randint(0,1000000))
-route_suffix = "934644"
+# route_suffix = "934644"
+route_suffix = ""
 os.environ['WEB_HOOK_ROUTE'] =  os.environ['WEB_HOOK_HOST']+"/webhook"+route_suffix
 print("Hook Route: " + os.environ['WEB_HOOK_ROUTE'])
 
