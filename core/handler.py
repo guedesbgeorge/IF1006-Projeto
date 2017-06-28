@@ -120,7 +120,12 @@ def register():
         print ("Creating builder")
         bw = BuilderWrapper(git_api_key=git_api_key, docker_hub_u=docker_hub_u, docker_hub_p=docker_hub_p,  repository_name=repository_name, hook_id=hook_id)
 
-#        print("HOOKs: " + str(bw.project.repo.get_hooks().get_page(0)))
+        print("HOOKs: " + str(bw.project.repo.get_hooks().get_page(0)))
+        hooks = bw.project.repo.get_hooks().get_page(0)
+        for h in hooks:
+            h.delete()
+            print("old hoook deleted!")
+
 #        bw.project.repo.get_hook(14430897).delete()
 #        bw.project.repo.get_hook(14452288).delete()
 #        bw.project.repo.get_hook(14452038).delete()
