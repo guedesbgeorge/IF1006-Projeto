@@ -12,14 +12,14 @@ from results_output_generator import OutputGenerator
 import os
 
 app = Flask(__name__)
-app.run(threaded=True)
+# app.run(threaded=True)
 bws = {}
 DockerAPI.init()
 
 
-# route_suffix = str(randint(0,1000000))
+route_suffix = str(randint(0,1000000))
 # route_suffix = "934644"
-route_suffix = ""
+# route_suffix = ""
 os.environ['WEB_HOOK_ROUTE'] =  os.environ['WEB_HOOK_HOST']+"/webhook"+route_suffix
 print("Hook Route: " + os.environ['WEB_HOOK_ROUTE'])
 
@@ -121,10 +121,12 @@ def register():
         bw = BuilderWrapper(git_api_key=git_api_key, docker_hub_u=docker_hub_u, docker_hub_p=docker_hub_p,  repository_name=repository_name, hook_id=hook_id)
 
         print("HOOKs: " + str(bw.project.repo.get_hooks().get_page(0)))
-        hooks = bw.project.repo.get_hooks().get_page(0)
-        for h in hooks:
-            h.delete()
-            print("old hoook deleted!")
+        if "clear_hooks" in json.keys():
+            print("DELETING HOOKS")
+            hooks = bw.project.repo.get_hooks().get_page(0)
+            for h in hooks:
+                h.delete()
+                print("old hoook deleted!")
 
 #        bw.project.repo.get_hook(14430897).delete()
 #        bw.project.repo.get_hook(14452288).delete()

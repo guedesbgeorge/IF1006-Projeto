@@ -18,7 +18,6 @@ PUSH_PROD_IMAGE = (lambda bw: ActionBuilder.push_prod_image(bw), 'PUSH_PROD_IMAG
 
 DEPLOY_PROD_CONTAINER = (lambda bw: ActionBuilder.deploy_prod_container(bw), 'DEPLOY_PROD_CONTAINER')
 
-
 pipeline = [LOAD_BENGA_CONF, CLONE_REPO, BUILD_TEST_IMAGE, RUN_TESTS, PUSH_TEST_IMAGE, BUILD_PROD_IMAGE, PUSH_PROD_IMAGE, DEPLOY_PROD_CONTAINER]
 
 class ActionBuilder:
@@ -45,8 +44,6 @@ class ActionBuilder:
 
         except Exception as e:
             raise e
-        finally:
-            DockerAPI.erase(bw.test_image.tag)
 
 
 

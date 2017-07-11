@@ -57,7 +57,7 @@ ENV WEB_HOOK_HOST http://23.251.151.44:5000
     
 RUN usermod -aG docker $(whoami)
 
+EXPOSE 443
 EXPOSE 5000
 
-
-CMD flask run -h 0.0.0.0 -p 5000
+CMD flask run --host=0.0.0.0 --port=5000
