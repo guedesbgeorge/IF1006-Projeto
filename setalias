@@ -1,0 +1,4 @@
+alias commitmaster='echo 1 >> README.md && git add . && git commit -m "1" && git push origin master'
+alias setgcloud='curl -XPOST 23.251.151.44:5000/setgcloudfile -d @trash/gcloud.json -H "Content-type:application/json"'
+alias register='curl -XPOST 23.251.151.44:5000/register -d @trash/json -H "Content-type:application/json"'
+

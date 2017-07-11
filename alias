@@ -1,0 +1,1 @@
+alias commit='echo "1" >> README.md && git add . && git commit -m "1" && git push origin master'

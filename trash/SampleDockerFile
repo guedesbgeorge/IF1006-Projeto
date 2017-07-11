@@ -1,0 +1,5 @@
+FROM openjdk:8-jdk
+RUN mkdir build
+COPY ./build/* build/
+WORKDIR build
+CMD python hello.py

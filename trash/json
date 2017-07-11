@@ -1,0 +1,13 @@
+{
+    "git_api_key": "",
+    "repository_name": "marlonwc3/cloud-example",
+    "docker_hub_u": "marlonalves",
+    "docker_hub_p": "04I7wh%edkNHGV#fT6Ji",
+    "gcloud_config": {
+                "instance": "instance-1",
+                "zone": "us-central1-c",
+                "project": "benga-170705",
+                "user": "mras"
+            }
+}
+ 
